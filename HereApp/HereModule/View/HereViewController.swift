@@ -20,7 +20,7 @@ class HereViewController: UIViewController {
     @IBOutlet weak var mapView: MKMapView!
 
     private lazy var viewModel: HereViewModel = {
-        return HereViewModel(state: .initialLocationFetching)
+        return HereViewModel()
     }()
     
     private let tableViewAdapter = HereTableViewAdapter()
@@ -47,100 +47,40 @@ class HereViewController: UIViewController {
         mapView.delegate = mapAdapter
         mapAdapter.mapView = mapView
 
-        let gotCurrentAddress = viewModel.$state
-            .filter({ (state: HereViewModelState) -> Bool in
-                switch state {
-                case .gotCurrentAddressName: return true
-                default: return false
-                }
-            })
-            .map({
-                switch $0 {
-                    case .gotCurrentAddressName(let title):
-                        return "Current address is: \(title)"
-                    default:
-                        return nil
-                }
-            })
+        let gotCurrentAddress = viewModel.$locationAddressName
             .assign(to: \.text, on: titleLabel)
 
-        let gotCategoriesList = viewModel.$state
-            .filter({ (state: HereViewModelState) -> Bool in
-                switch state {
-                case .gotCategoriesList: return true
-                default: return false
-                }
-            })
-            .map({
-                switch $0 {
-                case .gotCategoriesList(let categories):
-                    return categories
-                default:
-                    return []
-                }
-            })
+        let gotCategoriesList = viewModel.$categoriesViewItems
             .assign(to: \.categories, on: tableViewAdapter)
 
-        let gotPlacesList = viewModel.$state
-            .filter({ (state: HereViewModelState) -> Bool in
-                switch state {
-                case .gotPlacesList: return true
-                default: return false
-                }
-            })
-            .map({
-                switch $0 {
-                case .gotPlacesList(let places):
-                    return places
-                default:
-                    return []
-                }
-            })
+        let gotPlacesList = viewModel.$placesViewItems
             .assign(to: \.data, on: mapAdapter)
 
-        let gotPlacesList2 = viewModel.$state
-            .filter({ (state: HereViewModelState) -> Bool in
-                switch state {
-                case .gotPlacesList: return true
-                default: return false
-                }
-            })
-            .map({
-                switch $0 {
-                case .gotPlacesList(let places):
-                    return places
-                default:
-                    return []
-                }
-            })
+        let gotPlacesList2 = viewModel.$placesViewItems
             .assign(to: \.searchResults, on: tableViewAdapter)
 
-        let stateChange = viewModel.$state
-            .sink(receiveValue: { [weak self] (state: HereViewModelState) in
-                guard let self = self else { return }
+        let loader = viewModel.$isLoading.sink { [unowned self] (isLoading: Bool) in
+            if isLoading {
+                self.loadingIndicator.startAnimating()
+            } else {
+                self.loadingIndicator.stopAnimating()
+            }
+        }
 
-                switch state {
-                case .error(let error):
-                    self.loadingIndicator.stopAnimating()
-                    debugPrint("ERROR: \(error.localizedDescription)")
+        let error = viewModel.$error.sink { (errorMessage: String?) in
+            debugPrint("ERROR: \(errorMessage ?? "Unknown")")
+        }
 
-                case .gotLocation(let location):
-                    self.loadingIndicator.stopAnimating()
-                    self.setCurrentLocation(location)
+        let currentLocation = viewModel.$location.sink { [unowned self] (location: CLLocationCoordinate2D?) in
+            guard let location = location else { return }
+            self.setCurrentLocation(location)
+        }
 
-                case .loading:
-                    self.loadingIndicator.startAnimating()
-
-                default:
-                    self.loadingIndicator.stopAnimating()
-                }
-            })
-
-        publishers.append(contentsOf: [gotCurrentAddress, gotCategoriesList, gotPlacesList, gotPlacesList2, stateChange])
+        publishers.append(contentsOf: [gotCurrentAddress, gotCategoriesList, gotPlacesList, gotPlacesList2, loader, error, currentLocation])
     }
 
     @IBAction func onUpdate() {
-        viewModel.state = .placesLoading
+        viewModel.fetchPlacesInfo()
     }
 
     @IBAction func onTableViewDataTypeChanged(_ sender: UISegmentedControl) {

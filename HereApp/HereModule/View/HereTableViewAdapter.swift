@@ -58,16 +58,20 @@ class HereTableViewAdapter: NSObject, UITableViewDelegate, UITableViewDataSource
         let cell = tableView.dequeueReusableCell(withIdentifier: "HerePlaceCategoryCell", for: indexPath) as! HerePlaceCategoryCell
 
         var text: String?
+        var isSelected: Bool
         switch dataType {
         case .categories:
             text = categories[indexPath.row].title
+            isSelected = categories[indexPath.row].isSelected
         case .searchResults:
             if let title = searchResults[indexPath.row].title {
                 text = "PLACE: \(title)"
             }
+            isSelected = false
         }
 
         cell.labelName.text = text
+        cell.accessoryType = isSelected ? .checkmark : .none
 
         return cell
     }

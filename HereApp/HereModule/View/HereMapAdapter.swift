@@ -27,6 +27,9 @@ class HereMapAdapter: NSObject, MKMapViewDelegate {
     
     var data = [PlaceViewItem]() {
         didSet {
+            if let annotations = mapView?.annotations {
+                mapView?.removeAnnotations(annotations)
+            }
             mapView?.showAnnotations(data, animated: true)
         }
     }

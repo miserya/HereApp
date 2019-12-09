@@ -12,4 +12,5 @@ struct PlaceCategoryViewItem: Equatable {
     let id: String
     let title: String
     let icon: URL
+    var isSelected: Bool
 }
