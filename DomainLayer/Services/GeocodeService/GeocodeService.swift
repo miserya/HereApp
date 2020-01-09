@@ -6,22 +6,19 @@
 //  Copyright © 2019 Maria Holubieva. All rights reserved.
 //
 
-import Foundation
+import Combine
 
 final class GeocodeService {
 
-    func getCurrentAddress(_ args: GetAddressArgs, completion: ((Result<CurrentAddress, Error>) -> Void)?) {
-        NetworkingManager.default.request(GeocodeTarget.currentAddress(args)) { (result: Result<CurrentAddressResponse, Error>) in
-            switch result {
-            case .success(let response):
+    func getCurrentAddress(_ args: GetAddressArgs) -> AnyPublisher<CurrentAddress, Error> {
+        NetworkingManager.default.request(GeocodeTarget.currentAddress(args))
+            .tryMap({ (response: CurrentAddressResponse) -> CurrentAddress in
                 if let address = response.addresses.first {
-                    completion?(.success(address))
+                    return address
                 } else {
-                    completion?(.failure(DomainLayerError.emptyResponse))
+                    throw DomainLayerError.emptyResponse
                 }
-            case .failure(let error):
-                completion?(.failure(error))
-            }
-        }
+            })
+            .eraseToAnyPublisher()
     }
 }

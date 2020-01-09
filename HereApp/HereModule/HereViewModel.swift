@@ -26,6 +26,10 @@ class HereViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let getCategories = GetPlaceCategories()
     private let getPlaces = GetPlaces()
 
+    private var loadAddress: AnyCancellable?
+    private var loadCategories: AnyCancellable?
+    private var loadPlaces: AnyCancellable?
+
     private var currentAddress: CurrentAddress = CurrentAddress.empty {
         didSet {
             locationAddressName = currentAddress.name
@@ -81,50 +85,53 @@ class HereViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     private func fetchAddress(for location: CLLocationCoordinate2D) {
         isLoading = true
-        let args = GetAddressArgs(latitude: location.latitude, longitude: location.longitude, radius: 250)
-        getAddress.execute(with: args) { [weak self] (result: Result<CurrentAddress, Error>) in
-            guard let self = self else { return }
+        loadAddress?.cancel()
 
-            self.isLoading = false
-            switch result {
-            case .success(let address):
-                self.currentAddress = address
-            case .failure(let error):
-                self.error = error.localizedDescription
-            }
-        }
+        let args = GetAddressArgs(latitude: location.latitude, longitude: location.longitude, radius: 250)
+        loadAddress = getAddress.execute(with: args)
+            .sink(receiveCompletion: { [weak self] (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    self?.error = error.localizedDescription
+                    self?.isLoading = false
+                }
+            }, receiveValue: { [weak self] (address: CurrentAddress) in
+                self?.currentAddress = address
+                self?.isLoading = false
+            })
     }
 
     private func fetchCategories(for location: CLLocationCoordinate2D) {
         isLoading = true
-        let args = GetPlaceCategoriesArgs(latitude: location.latitude, longitude: location.longitude)
-        getCategories.execute(with: args) { [weak self] (result: Result<[PlaceCategory], Error>) in
-            guard let self = self else { return }
+        loadCategories?.cancel()
 
-            self.isLoading = false
-            switch result {
-            case .success(let categories):
-                self.categories = categories
-            case .failure(let error):
-                self.error = error.localizedDescription
-            }
-        }
+        let args = GetPlaceCategoriesArgs(latitude: location.latitude, longitude: location.longitude)
+        loadCategories = getCategories.execute(with: args)
+            .sink(receiveCompletion: { [weak self] (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    self?.error = error.localizedDescription
+                    self?.isLoading = false
+                }
+            }, receiveValue: { [weak self] (categories: [PlaceCategory]) in
+                self?.categories = categories
+                self?.isLoading = false
+            })
     }
 
     private func fetchPlaces(for location: CLLocationCoordinate2D, categories: [PlaceCategory]) {
         isLoading = true
-        let args = GetPlacesArgs(latitude: location.latitude, longitude: location.longitude, categories: categories)
-        getPlaces.execute(with: args) { [weak self] (result: Result<Pagination<Place>, Error>) in
-            guard let self = self else { return }
+        loadPlaces?.cancel()
 
-            self.isLoading = false
-            switch result {
-            case .success(let pagination):
-                self.places = pagination
-            case .failure(let error):
-                self.error = error.localizedDescription
-            }
-        }
+        let args = GetPlacesArgs(latitude: location.latitude, longitude: location.longitude, categories: categories)
+        loadPlaces = getPlaces.execute(with: args)
+            .sink(receiveCompletion: { [weak self] (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    self?.error = error.localizedDescription
+                    self?.isLoading = false
+                }
+            }, receiveValue: { [weak self] (places: Pagination<Place>) in
+                self?.places = places
+                self?.isLoading = false
+            })
     }
 
     //MARK: - CLLocationManagerDelegate

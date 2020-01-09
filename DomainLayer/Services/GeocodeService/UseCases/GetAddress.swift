@@ -6,14 +6,14 @@
 //  Copyright © 2019 Maria Holubieva. All rights reserved.
 //
 
-import Foundation
+import Combine
 
 public class GetAddress: UseCase<GetAddressArgs, CurrentAddress> {
 
     private let service = GeocodeService()
     
-    override func build(with args: GetAddressArgs, completion: ((Result<CurrentAddress, Error>) -> Void)?) {
-        return service.getCurrentAddress(args, completion: completion)
+    override func build(with args: GetAddressArgs) -> AnyPublisher<CurrentAddress, Error> {
+        return service.getCurrentAddress(args)
     }
 }
 

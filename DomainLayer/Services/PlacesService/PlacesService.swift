@@ -6,17 +6,19 @@
 //  Copyright © 2019 Maria Holubieva. All rights reserved.
 //
 
-import Foundation
+import Combine
 
 class PlacesService {
 
-    func getPlaceCategories(_ args: GetPlaceCategoriesArgs, completion: ((Result<[PlaceCategory], Error>) -> Void)?) {
-        NetworkingManager.default.request(PlacesTarget.getPlaceCategories(args)) { (result: Result<PlaceCategoriesResponse, Error>) in
-            completion?(result.map({ return $0.items }))
-        }
+    func getPlaceCategories(_ args: GetPlaceCategoriesArgs) -> AnyPublisher<[PlaceCategory], Error> {
+        NetworkingManager.default.request(PlacesTarget.getPlaceCategories(args))
+            .map({ (response: PlaceCategoriesResponse) in
+                return response.items
+            })
+            .eraseToAnyPublisher()
     }
 
-    func getPlaces(_ args: GetPlacesArgs, completion: ((Result<Pagination<Place>, Error>) -> Void)?) {
-        NetworkingManager.default.request(PlacesTarget.getPlaces(args), completion: completion)
+    func getPlaces(_ args: GetPlacesArgs) -> AnyPublisher<Pagination<Place>, Error> {
+        NetworkingManager.default.request(PlacesTarget.getPlaces(args))
     }
 }

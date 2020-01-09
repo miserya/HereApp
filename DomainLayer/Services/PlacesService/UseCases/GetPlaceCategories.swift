@@ -6,14 +6,14 @@
 //  Copyright © 2019 Maria Holubieva. All rights reserved.
 //
 
-import Foundation
+import Combine
 
 public class GetPlaceCategories: UseCase<GetPlaceCategoriesArgs, [PlaceCategory]> {
 
     private let service = PlacesService()
 
-    override func build(with args: GetPlaceCategoriesArgs, completion: ((Result<[PlaceCategory], Error>) -> Void)?) {
-        service.getPlaceCategories(args, completion: completion)
+    override func build(with args: GetPlaceCategoriesArgs) -> AnyPublisher<[PlaceCategory], Error> {
+        service.getPlaceCategories(args)
     }
 }
 

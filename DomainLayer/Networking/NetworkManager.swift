@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Combine
 
 class NetworkingManager: NSObject {
 
@@ -20,11 +21,10 @@ class NetworkingManager: NSObject {
 
     //MARK: - Data Request
 
-    func request<Output: Decodable>(_ target: RequestTarget, completion: ((Result<Output, Error>) -> Void)?) {
+    func request<Output: Decodable>(_ target: RequestTarget) -> AnyPublisher<Output, Error> {
 
         guard var urlComponents = URLComponents(string: "\(target.baseURL)\(target.route.path)") else {
-            completion?(.failure(DomainLayerError.invalidRequest))
-            return
+            return Publishers.Fail(outputType: Output.self, failure: DomainLayerError.invalidRequest).eraseToAnyPublisher()
         }
         urlComponents.queryItems = target.params?.map({ (arg) -> URLQueryItem in
             return URLQueryItem(name: arg.key, value: String(describing: arg.value))
@@ -33,8 +33,7 @@ class NetworkingManager: NSObject {
         urlComponents.queryItems?.append(URLQueryItem(name: "app_code", value: ServerConfiguration.appCode))
 
         guard let url = urlComponents.url else {
-            completion?(.failure(DomainLayerError.invalidRequest))
-            return
+            return Publishers.Fail(outputType: Output.self, failure: DomainLayerError.invalidRequest).eraseToAnyPublisher()
         }
 
         var urlRequest = URLRequest(url: url)
@@ -43,20 +42,9 @@ class NetworkingManager: NSObject {
 
         debugPrint("REQUEST: \(urlRequest)")
 
-        let dataTask = self.dataSession.dataTask(with: urlRequest) { (data, response, error) in
-            if let error = error {
-                completion?(Result.failure(error))
-            }
-            else if let data = data {
-                do {
-                    let output = try JSONDecoder().decode(Output.self, from: data)
-                    completion?(Result.success(output))
-                }
-                catch {
-                    completion?(Result.failure(error))
-                }
-            }
-        }
-        dataTask.resume()
+        return dataSession.dataTaskPublisher(for: urlRequest)
+            .tryMap { (data: Data, response: URLResponse) -> Output in
+                return try JSONDecoder().decode(Output.self, from: data) }
+            .eraseToAnyPublisher()
     }
 }

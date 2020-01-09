@@ -6,24 +6,21 @@
 //  Copyright © 2019 Maria Holubieva. All rights reserved.
 //
 
-import Foundation
+import Combine
 
 open class UseCase<Input, Output> {
 
     public init() {
     }
 
-    func build(with args: Input, completion: ((Result<Output, Error>) -> Void)?) {
+    func build(with args: Input) -> AnyPublisher<Output, Error> {
         preconditionFailure("Must be overridden!")
     }
 
-    public func execute(with args: Input, completion: ((Result<Output, Error>) -> Void)?) {
-         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.build(with: args, completion: { (result: Result<Output, Error>) in
-                DispatchQueue.main.async {
-                    completion?(result)
-                }
-            })
-        }
+    public func execute(with args: Input) -> AnyPublisher<Output, Error> {
+        build(with: args)
+            .subscribe(on: DispatchQueue.global(qos: .userInitiated))
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }

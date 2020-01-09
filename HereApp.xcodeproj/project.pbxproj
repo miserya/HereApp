@@ -38,6 +38,7 @@
 		66569EE92377125300ADBC88 /* PlaceCategoryViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66569EE82377125300ADBC88 /* PlaceCategoryViewItem.swift */; };
 		66815949237717CD00DD5217 /* PlaceViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66815948237717CD00DD5217 /* PlaceViewItem.swift */; };
 		6681594D23773B0800DD5217 /* HereMapAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6681594C23773B0800DD5217 /* HereMapAdapter.swift */; };
+		DE715F1023C75C2700030EB9 /* Publishers+Fail.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE715F0F23C75C2700030EB9 /* Publishers+Fail.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 		66569EE82377125300ADBC88 /* PlaceCategoryViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceCategoryViewItem.swift; sourceTree = "<group>"; };
 		66815948237717CD00DD5217 /* PlaceViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceViewItem.swift; sourceTree = "<group>"; };
 		6681594C23773B0800DD5217 /* HereMapAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HereMapAdapter.swift; sourceTree = "<group>"; };
+		DE715F0F23C75C2700030EB9 /* Publishers+Fail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publishers+Fail.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,6 +181,7 @@
 				66569EB723759DF600ADBC88 /* NetworkManager.swift */,
 				66569EB923759E3B00ADBC88 /* RequestTarget.swift */,
 				66569EBB23759E6A00ADBC88 /* ServerConfiguration.swift */,
+				DE715F0F23C75C2700030EB9 /* Publishers+Fail.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -410,6 +413,7 @@
 			files = (
 				66569ECA2375A70900ADBC88 /* CurrentAddress.swift in Sources */,
 				66569ED02376FA0100ADBC88 /* PlacesService.swift in Sources */,
+				DE715F1023C75C2700030EB9 /* Publishers+Fail.swift in Sources */,
 				66569EDA2376FB3800ADBC88 /* GetPlaces.swift in Sources */,
 				66569EC42375A5DF00ADBC88 /* GeocodeService.swift in Sources */,
 				66569EC123759EF400ADBC88 /* UseCase.swift in Sources */,
